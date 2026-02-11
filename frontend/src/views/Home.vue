@@ -10,6 +10,7 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const uploading = ref(false)
+const uploadProgress = ref(0)
 const lastCaseId = ref('')
 const lastCaseCreatedAt = ref('')
 const lastMsg = ref('')
@@ -22,13 +23,20 @@ async function logout() {
 async function upload(type, file) {
   lastMsg.value = ''
   uploading.value = true
+  uploadProgress.value = 0
   try {
     const fd = new FormData()
     fd.append('type', type)
     if (file) {
       fd.append('file', file)
     }
-    const { data } = await api.post('/api/cases', fd)
+    const { data } = await api.post('/api/cases', fd, {
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        }
+      }
+    })
     if (!data.ok) throw new Error(data.msg || '创建 case 失败')
     lastCaseId.value = data.case_id
     lastCaseCreatedAt.value = data.created_at || ''
@@ -36,6 +44,7 @@ async function upload(type, file) {
     lastMsg.value = e?.message || String(e)
   } finally {
     uploading.value = false
+    uploadProgress.value = 0
   }
 }
 
@@ -88,6 +97,13 @@ function goProfile() {
         </el-button>
       </div>
       <el-alert v-if="lastMsg" :title="lastMsg" type="error" show-icon :closable="false" style="margin-top: 12px" />
+      <el-progress 
+        v-if="uploading && uploadProgress > 0" 
+        :percentage="uploadProgress" 
+        :stroke-width="20"
+        :text-inside="true"
+        style="margin-top: 12px"
+      />
     </div>
 
     <div v-if="lastCaseId" style="margin-top: 16px">
