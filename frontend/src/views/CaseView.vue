@@ -301,7 +301,7 @@ onBeforeUnmount(() => {
       <div class="card-title">可视化结果</div>
       <div class="video-row">
         <div class="video-col">
-          <div class="muted small-title">最终热力图视频（背景建模+前景+叠加）</div>
+          <div class="muted small-title">最终热力图视频</div>
           <div class="result-video-wrapper">
             <video class="result-video" :src="finalUrl" controls autoplay loop />
           </div>
